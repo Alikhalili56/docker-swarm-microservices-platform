@@ -1,0 +1,14 @@
+---
+- name: Init docker swarm cluster on first node
+  community.docker.docker_swarm:
+    state: present
+  register: swarm_init
+  when: inventory_hostname == ansible_play_hosts_all[0]
+
+- name: Join docker swarm cluster on the other nodes
+  community.docker.docker_swarm:
+    state: join
+    join_token: "{{ hostvars[ansible_play_hosts_all[0]]['swarm_init']['swarm_facts']['JoinTokens']['Worker'] }}"
+    remote_addrs:
+      - "{{ hostvars[ansible_play_hosts_all[0]]['ansible_default_ipv4']['address'] }}"
+  when: inventory_hostname != ansible_play_hosts_all[0]
