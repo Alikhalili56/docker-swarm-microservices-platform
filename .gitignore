@@ -1,2 +1,4 @@
 credentials/
-.venv
+.vault_pass
+.vagrant/
+.venv/
