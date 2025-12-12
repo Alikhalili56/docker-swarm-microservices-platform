@@ -10,6 +10,7 @@
   become: true
   roles:
     - docker-registry
+    - tls-certificate
 - hosts: all
   become: true
   roles:

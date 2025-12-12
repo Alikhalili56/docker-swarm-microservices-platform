@@ -1,0 +1,37 @@
+---
+- name: Create cert directory
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+
+- name: Generate TLS private key
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_key_path }}"
+
+- name: Generate CSR with SAN
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/cert.csr"
+    privatekey_path: "{{ cert_key_path }}"
+    subject_alt_name:
+      - "DNS:*.{{ domain_name }}"
+
+- name: Generate TLS certificate
+  community.crypto.x509_certificate:
+    path: "{{ cert_file_path }}"
+    privatekey_path: "{{ cert_key_path }}"
+    csr_path: "{{ cert_dir }}/cert.csr"
+    provider: selfsigned
+    selfsigned_not_after: "+365d"
+
+- name: Show certificate details
+  ansible.builtin.command:
+    cmd: "openssl x509 -noout -text -in {{ cert_file_path }}"
+  changed_when: false
+  register: cert_text
+
+- name: Confirm SAN contains wildcard domain
+  ansible.builtin.assert:
+    that:
+      - "'DNS:*.' ~ domain_name in cert_text.stdout"
+    fail_msg: "SAN does not contain DNS:*.{{ domain_name }}"
+    success_msg: "SAN OK: DNS:*.{{ domain_name }} present"
