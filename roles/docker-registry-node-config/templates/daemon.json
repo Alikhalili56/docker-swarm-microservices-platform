@@ -1,6 +1,5 @@
 {
-  "insecure-registry": [
-    "127.0.0.1:5000",
-    "registry.vcc.internal:5000"
+  "insecure-registries": [
+    "{{ registry_host }}:{{ registry_port }}"
   ]
 }

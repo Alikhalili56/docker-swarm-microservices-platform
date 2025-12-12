@@ -25,5 +25,4 @@
 - hosts: all[0]
   become: true
   roles:
-    # TODO role for the certificate
     - swarm-services

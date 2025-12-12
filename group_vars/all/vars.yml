@@ -1,0 +1,11 @@
+---
+# Domain & Certificates
+domain_name: vcc.internal
+cert_dir: /data/certs
+cert_file_path: "{{ cert_dir }}/cert.pem"
+cert_key_path: "{{ cert_dir }}/cert.key"
+
+# Registry
+registry_host: "registry.{{ domain_name }}"
+registry_port: 5000
+registry_url: "{{ registry_host }}:{{ registry_port }}"

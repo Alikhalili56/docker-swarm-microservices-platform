@@ -3,7 +3,7 @@
 - name: Copy docker daemon.json
   ansible.builtin.template:
     src: daemon.json
-    dest: /etc/docker/daemon.sjon
+    dest: /etc/docker/daemon.json
   notify: Restart docker
 - meta: flush_handlers
 

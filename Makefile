@@ -21,16 +21,16 @@ python-setup: .venv
 .PHONY: setup-all
 setup-all: .venv
 	. .venv/bin/activate && \
-		ansible-playbook -i $(INVENTORY) -v
+		ansible-playbook -i $(INVENTORY) playbook.yml --vault-password-file .vault_pass -v
 
 .PHONY: setup-from-images-onwards
 setup-from-images-onwards: .venv
 	. .venv/bin/activate && \
-		ansible-playbook -i $(INVENTORY) -v	\
+		ansible-playbook -i $(INVENTORY) playbook.yml --vault-password-file .vault_pass -v	\
 		--start-at-task='Create /opt/container-images'
 
 .PHONY: setup-from-service-onwards
 setup-from-service-onwards: .venv
 	. .venv/bin/activate && \
-		ansible-playbook -i $(INVENTORY) -v	\
+		ansible-playbook -i $(INVENTORY) playbook.yml --vault-password-file .vault_pass -v	\
 		--start-at-task='Repull images'
