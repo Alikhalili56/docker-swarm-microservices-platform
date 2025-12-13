@@ -1,5 +1,45 @@
 networks:
-  vcc_net:
+  internal_net:
     driver: overlay
 
-services: {}
+services:
+  traefik:
+    image: public.ecr.aws/docker/library/traefik:v3.2.2
+    networks:
+      internal_net:
+        aliases:
+          - auth.{{ domain_name }}
+          - git.{{ domain_name }}
+          - mon.{{ domain_name }}
+          - prom.{{ domain_name }}
+    command:
+      - --accesslog=true
+      - --accesslog.format=json
+      - --log.level=INFO
+      - --log.format=json
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443
+      - --entryPoints.metrics.address=:8082
+      - --metrics.prometheus=true
+      - --metrics.prometheus.entryPoint=metrics
+      - --providers.swarm=true
+      - --providers.swarm.endpoint=unix:///var/run/docker.sock
+      - --providers.swarm.exposedByDefault=false
+      - --providers.swarm.network=vcc_internal_net
+      - --entryPoints.web.http.redirections.entryPoint.to=websecure
+      - --entryPoints.web.http.redirections.entryPoint.scheme=https
+      - --providers.file.filename=/etc/traefik/tls.yml
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - {{ cert_dir }}:/etc/certs:ro
+      - /data/configs/traefik/tls.yml:/etc/traefik/tls.yml:ro
+    deploy:
+      placement:
+        constraints: ["node.role == manager"]
+      labels:
+        - "traefik.enable=false"
+        - "prometheus.io/scrape-me=yes-please"
+        - "prometheus.io/metrics-port=8082"
