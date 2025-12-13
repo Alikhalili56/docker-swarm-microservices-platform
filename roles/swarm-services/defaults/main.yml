@@ -4,6 +4,7 @@ stack_data_directories:
   - forgejo
   - loki
   - prometheus
+  - postgres
 stack_nuke_data_directories: true # you WILL lose your data
 
 stack_file_names:

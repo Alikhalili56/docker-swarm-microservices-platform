@@ -3,6 +3,17 @@ networks:
     driver: overlay
 
 services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: "{{ postgres_user }}"
+      POSTGRES_PASSWORD: "{{ vault_postgres_password }}"
+    networks:
+      - internal_net
+    volumes:
+      - /data/postgres:/var/lib/postgresql/data
+      - /data/configs/postgres/init:/docker-entrypoint-initdb.d:ro
+
   traefik:
     image: public.ecr.aws/docker/library/traefik:v3.2.2
     networks:

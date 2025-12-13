@@ -42,6 +42,16 @@
     archive: true
     delete: true
 
+- name: Create postgres init directory
+  ansible.builtin.file:
+    path: /data/configs/postgres/init
+    state: directory
+
+- name: Copy postgres init script
+  ansible.builtin.template:
+    src: postgres/001-init.sql
+    dest: /data/configs/postgres/init/001-init.sql
+
 - name: Deploy stack from a compose file
   community.docker.docker_stack:
     state: present

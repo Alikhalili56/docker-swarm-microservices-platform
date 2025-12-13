@@ -9,3 +9,12 @@ cert_key_path: "{{ cert_dir }}/cert.key"
 registry_host: "registry.{{ domain_name }}"
 registry_port: 5000
 registry_url: "{{ registry_host }}:{{ registry_port }}"
+
+# Database
+postgres_user: postgres
+dex_db_name: dexdb
+dex_db_user: dex
+forgejo_db_name: forgejodb
+forgejo_db_user: forgejo
+grafana_db_name: grafanadb
+grafana_db_user: grafana
