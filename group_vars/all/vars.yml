@@ -18,3 +18,10 @@ forgejo_db_name: forgejodb
 forgejo_db_user: forgejo
 grafana_db_name: grafanadb
 grafana_db_user: grafana
+
+# Dex
+dex_issuer: "https://auth.{{ domain_name }}"
+dex_forgejo_client_id: forgejo
+dex_grafana_client_id: grafana
+dex_admin_email: "admin@example.com"
+dex_admin_username: "admin"

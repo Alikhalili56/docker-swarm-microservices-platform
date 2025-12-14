@@ -14,8 +14,26 @@ services:
       - /data/postgres:/var/lib/postgresql/data
       - /data/configs/postgres/init:/docker-entrypoint-initdb.d:ro
 
+  dex:
+    image: ghcr.io/dexidp/dex:v2.41.1-alpine
+    user: root
+    networks:
+      - internal_net
+    volumes:
+      - /data/dex:/data
+      - /data/configs/dex/dex.yaml:/etc/dex/config.docker.yaml:ro
+    command: ["dex", "serve", "/etc/dex/config.docker.yaml"]
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dex.rule=Host(`auth.{{ domain_name }}`)"
+        - "traefik.http.routers.dex.entrypoints=websecure"
+        - "traefik.http.routers.dex.tls=true"
+        - "traefik.http.services.dex.loadbalancer.server.port=5556"
+
   traefik:
-    image: public.ecr.aws/docker/library/traefik:v3.2.2
+    # new Docker requires 1.44+, This prevented Traefik from discovering services via swarm provider (Dex unreachable)
+    image: public.ecr.aws/docker/library/traefik:v3.6.2
     networks:
       internal_net:
         aliases:

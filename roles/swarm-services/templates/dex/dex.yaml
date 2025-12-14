@@ -1,0 +1,43 @@
+issuer: {{ dex_issuer }}
+
+storage:
+  type: postgres
+  config:
+    host: postgres
+    port: 5432
+    database: {{ dex_db_name }}
+    user: {{ dex_db_user }}
+    password: {{ vault_dex_db_password }}
+    ssl:
+      mode: disable
+
+web:
+  http: 0.0.0.0:5556
+
+telemetry:
+  http: 0.0.0.0:5558
+
+oauth2:
+  skipApprovalScreen: true
+  passwordConnector: local
+
+enablePasswordDB: true
+
+staticPasswords:
+  - email: "{{ dex_admin_email }}"
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "{{ dex_admin_username }}"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+
+staticClients:
+  - id: {{ dex_forgejo_client_id }}
+    name: Forgejo
+    secret: {{ vault_dex_forgejo_client_secret }}
+    redirectURIs:
+      - https://git.{{ domain_name }}/user/oauth2/Dex/callback
+
+  - id: {{ dex_grafana_client_id }}
+    name: Grafana
+    secret: {{ vault_dex_grafana_client_secret }}
+    redirectURIs:
+      - https://mon.{{ domain_name }}/login/generic_oauth

@@ -52,6 +52,16 @@
     src: postgres/001-init.sql
     dest: /data/configs/postgres/init/001-init.sql
 
+- name: Create dex config directory
+  ansible.builtin.file:
+    path: /data/configs/dex
+    state: directory
+
+- name: Copy dex config
+  ansible.builtin.template:
+    src: dex/dex.yaml
+    dest: /data/configs/dex/dex.yaml
+
 - name: Deploy stack from a compose file
   community.docker.docker_stack:
     state: present
