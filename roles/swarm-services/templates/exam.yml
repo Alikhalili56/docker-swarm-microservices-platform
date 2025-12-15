@@ -72,3 +72,28 @@ services:
         - "traefik.enable=false"
         - "prometheus.io/scrape-me=yes-please"
         - "prometheus.io/metrics-port=8082"
+
+  forgejo:
+    image: {{ registry_url }}/forgejo:latest
+    networks:
+      - internal_net
+    environment:
+      - FORGEJO_DB_USER={{ forgejo_db_user }}
+      - FORGEJO_DB_PASSWD={{ vault_forgejo_db_password }}
+      - FORGEJO_DB_NAME={{ forgejo_db_name }}
+      - FORGEJO_ADMIN_USER={{ forgejo_admin_user }}
+      - FORGEJO_ADMIN_PASS={{ vault_forgejo_admin_pass }}
+      - FORGEJO_ADMIN_EMAIL={{ forgejo_admin_email }}
+      - DEX_CLIENT_ID={{ dex_forgejo_client_id }}
+      - DEX_CLIENT_SECRET={{ vault_dex_forgejo_client_secret }}
+    volumes:
+      - /data/forgejo:/data
+      - /data/configs/forgejo:/data/gitea/conf
+      - {{ cert_dir }}:/etc/certs:ro
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.forgejo.rule=Host(`git.{{ domain_name }}`)"
+        - "traefik.http.routers.forgejo.entrypoints=websecure"
+        - "traefik.http.routers.forgejo.tls=true"
+        - "traefik.http.services.forgejo.loadbalancer.server.port=3200"

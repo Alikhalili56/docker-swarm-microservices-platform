@@ -30,6 +30,18 @@
     state: directory
   loop: "{{ stack_data_directories }}"
 
+- name: Set forgejo data directory ownership
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "1000"
+    group: "1000"
+    recurse: true
+  loop:
+    - /data/forgejo
+    - /data/forgejo/gitea
+    - /data/forgejo/gitea/data
+
 - name: Create /data/configs
   ansible.builtin.file:
     path: /data/configs
@@ -61,6 +73,20 @@
   ansible.builtin.template:
     src: dex/dex.yaml
     dest: /data/configs/dex/dex.yaml
+
+- name: Create forgejo config directory
+  ansible.builtin.file:
+    path: /data/configs/forgejo
+    state: directory
+    owner: "1000"
+    group: "1000"
+
+- name: Copy forgejo config
+  ansible.builtin.template:
+    src: forgejo/forgejo.ini
+    dest: /data/configs/forgejo/app.ini
+    owner: "1000"
+    group: "1000"
 
 - name: Deploy stack from a compose file
   community.docker.docker_stack:

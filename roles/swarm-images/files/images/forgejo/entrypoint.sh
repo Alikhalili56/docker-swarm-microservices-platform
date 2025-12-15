@@ -1,31 +1,70 @@
 #!/bin/sh
-set -e # fail on error
+set -e
 
-# This helper allows to run stuff as the forgejo user
-# TODO: looks like it's missing the `sudo` executable
-forgejo_cli() { sudo -u git forgejo --config /data/gitea/conf/app.ini "$@"; }
+# Helper to run forgejo CLI as git user
+forgejo_cli() {
+  sudo -u git forgejo --config /data/gitea/conf/app.ini "$@"
+}
 
-# TODO wait until database is alive
-#  - port alive                         (bad)
-#  - a mock query like 'SELECT 1' works (better)
+# 1. Wait for PostgreSQL
+echo "[forgejo] waiting for postgres..."
+until PGPASSWORD="${FORGEJO_DB_PASSWD}" psql -h postgres -U "${FORGEJO_DB_USER}" -d "${FORGEJO_DB_NAME}" -c "SELECT 1" >/dev/null 2>&1; do
+  sleep 2
+done
+echo "[forgejo] postgres is ready"
 
-# DB migration
+# 2. Run database migrations
+echo "[forgejo] running DB migrations..."
 forgejo_cli migrate
 
-# TODO create admin user (if it does not exists already)
-# use `forgejo admin user list` and `forgejo admin user create`
+# 3. Add TLS certificate to system trust store
+if [ -d /etc/certs ]; then
+  echo "[forgejo] adding TLS certificates to trust store..."
+  cp /etc/certs/*.pem /usr/local/share/ca-certificates/vcc.crt 2>/dev/null || true
+  update-ca-certificates || true
+fi
 
-# TODO make forgejo trust our TLS certificate
-#   Apparently /usr/local/share/ca-certificates is involved
+# 4. Create admin user if not exists
+echo "[forgejo] checking admin user..."
+if ! forgejo_cli admin user list | grep -q "${FORGEJO_ADMIN_USER}"; then
+  echo "[forgejo] creating admin user..."
+  forgejo_cli admin user create \
+    --username "${FORGEJO_ADMIN_USER}" \
+    --password "${FORGEJO_ADMIN_PASS}" \
+    --email "${FORGEJO_ADMIN_EMAIL}" \
+    --admin
+fi
 
-# TODO wait until authentication server is alive
-#  - port alive                         (bad)
-#  - check that the homepage responds   (better)
+# 5. Start Forgejo in background
+echo "[forgejo] starting forgejo..."
+/bin/s6-svscan /etc/s6 &
+S6_PID=$!
 
-# TODO setup authentication (if it does not exist)
-# use `forgejo admin auth list` and `forgejo admin auth add-oauth`
-#   --auto-discover-url is `https://auth.vcc.internal/.well-known/openid-configuration`
-#   --provider is openidConnect
+# 6. Wait for Forgejo HTTP to be ready
+echo "[forgejo] waiting for HTTP..."
+until curl -sf http://127.0.0.1:3200/api/healthz >/dev/null; do
+  sleep 2
+done
+echo "[forgejo] HTTP is ready"
 
-# Execute the original entrypoint
-exec /bin/s6-svscan /etc/s6 "$@"
+# 7. Wait for Dex to be ready
+echo "[forgejo] waiting for Dex..."
+until curl -sf http://dex:5556/.well-known/openid-configuration >/dev/null; do
+  sleep 2
+done
+echo "[forgejo] Dex is ready"
+
+# 8. Setup OAuth provider if not exists
+echo "[forgejo] checking OAuth provider..."
+if ! forgejo_cli admin auth list | grep -q "Dex"; then
+  echo "[forgejo] adding Dex OAuth provider..."
+  forgejo_cli admin auth add-oauth \
+    --name "Dex" \
+    --provider openidConnect \
+    --key "${DEX_CLIENT_ID}" \
+    --secret "${DEX_CLIENT_SECRET}" \
+    --auto-discover-url "https://auth.vcc.internal/.well-known/openid-configuration"
+fi
+
+echo "[forgejo] ready"
+wait $S6_PID

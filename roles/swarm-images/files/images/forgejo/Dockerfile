@@ -1,5 +1,10 @@
 FROM codeberg.org/forgejo/forgejo:9.0.3
 
-# TODO: install dependencies
+# Install dependencies for entrypoint script
+RUN apk add --no-cache sudo curl postgresql-client ca-certificates \
+ && update-ca-certificates
 
-# TODO: add a new entrypoint and use it to replace the original
+# Add custom entrypoint
+COPY --chmod=755 entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

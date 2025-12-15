@@ -25,3 +25,7 @@ dex_forgejo_client_id: forgejo
 dex_grafana_client_id: grafana
 dex_admin_email: "admin@example.com"
 dex_admin_username: "admin"
+
+# Forgejo
+forgejo_admin_user: adminuser
+forgejo_admin_email: "admin@example.com"

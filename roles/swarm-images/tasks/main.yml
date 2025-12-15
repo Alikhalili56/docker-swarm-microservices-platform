@@ -16,6 +16,8 @@
     name: "registry.vcc.internal:5000/{{ item }}"
     tag: latest
     path: "/opt/container-images/{{ item }}"
+    # Force rebuild to pick up Dockerfile/entrypoint changes (cached images ignore source changes)
+    rebuild: always
   loop: "{{ swarm_build_images }}"
   # retry the task that may fail
   retries: 3
