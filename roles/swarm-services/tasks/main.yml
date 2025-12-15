@@ -88,6 +88,22 @@
     owner: "1000"
     group: "1000"
 
+- name: Create prometheus config directory
+  ansible.builtin.file:
+    path: /data/configs/prometheus
+    state: directory
+
+- name: Copy prometheus config
+  ansible.builtin.template:
+    src: prometheus/prometheus.yml
+    dest: /data/configs/prometheus/prometheus.yml
+
+- name: Set prometheus data directory ownership
+  ansible.builtin.file:
+    path: /data/prometheus
+    owner: "65534"
+    group: "65534"
+
 - name: Deploy stack from a compose file
   community.docker.docker_stack:
     state: present

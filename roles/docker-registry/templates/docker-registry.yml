@@ -15,6 +15,8 @@ services:
       REGISTRY_AUTH_HTPASSWD_PATH: /etc/registry/htpasswd
       REGISTRY_HTTP_ADDR: ':5000'
       REGISTRY_HTTP_SECRET: '{{ lookup('ansible.builtin.password', 'credentials/container-registry-http-secret', length=32) }}'
+      REGISTRY_HTTP_DEBUG_ADDR: ':5001'
+      REGISTRY_HTTP_DEBUG_PROMETHEUS_ENABLED: 'true'
     volumes:
       - /data/registry/config/auth:/etc/registry/htpasswd:ro
       - /data/registry/data:/var/lib/registry

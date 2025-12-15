@@ -1,0 +1,40 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8082']
+
+  - job_name: 'dex'
+    static_configs:
+      - targets: ['dex:5558']
+
+  - job_name: 'forgejo'
+    static_configs:
+      - targets: ['forgejo:3200']
+    metrics_path: /metrics
+
+  # Node Exporter - global mode, use DNS to discover all instances
+  - job_name: 'node-exporter'
+    dns_sd_configs:
+      - names: ['tasks.node-exporter']
+        type: A
+        port: 9100
+
+  # Registry metrics - runs on all nodes via host network
+  - job_name: 'registry'
+    dockerswarm_sd_configs:
+      - host: unix:///var/run/docker.sock
+        role: nodes
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: node
+      - source_labels: [__meta_dockerswarm_node_address]
+        target_label: __address__
+        replacement: '${1}:5001'

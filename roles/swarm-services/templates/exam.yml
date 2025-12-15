@@ -97,3 +97,43 @@ services:
         - "traefik.http.routers.forgejo.entrypoints=websecure"
         - "traefik.http.routers.forgejo.tls=true"
         - "traefik.http.services.forgejo.loadbalancer.server.port=3200"
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    hostname: "{% raw %}{{.Node.Hostname}}{% endraw %}"
+    networks:
+      - internal_net
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    deploy:
+      mode: global
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:v3.0.1
+    user: root
+    networks:
+      - internal_net
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=14d'
+    volumes:
+      - /data/prometheus:/prometheus
+      - /data/configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      placement:
+        constraints: ["node.role == manager"]
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.prometheus.rule=Host(`prom.{{ domain_name }}`)"
+        - "traefik.http.routers.prometheus.entrypoints=websecure"
+        - "traefik.http.routers.prometheus.tls=true"
+        - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
