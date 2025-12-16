@@ -25,6 +25,16 @@ scrape_configs:
       - targets: ['grafana:3000']
     metrics_path: /metrics
 
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+
+  - job_name: 'promtail'
+    dns_sd_configs:
+      - names: ['tasks.promtail']
+        type: A
+        port: 9080
+
   # Node Exporter - global mode, use DNS to discover all instances
   - job_name: 'node-exporter'
     dns_sd_configs:
