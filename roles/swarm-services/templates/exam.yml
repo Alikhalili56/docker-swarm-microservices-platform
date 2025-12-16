@@ -137,3 +137,29 @@ services:
         - "traefik.http.routers.prometheus.entrypoints=websecure"
         - "traefik.http.routers.prometheus.tls=true"
         - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  grafana:
+    image: {{ registry_url }}/grafana:latest
+    networks:
+      - internal_net
+    environment:
+      - GF_SERVER_ROOT_URL=https://mon.{{ domain_name }}
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=postgres:5432
+      - GF_DATABASE_NAME={{ grafana_db_name }}
+      - GF_DATABASE_USER={{ grafana_db_user }}
+      - GF_DATABASE_PASSWORD={{ vault_grafana_db_password }}
+      - GF_DATABASE_SSL_MODE=disable
+      - GF_METRICS_ENABLED=true
+      - GRAFANA_OAUTH_CLIENT_ID={{ dex_grafana_client_id }}
+      - GRAFANA_OAUTH_CLIENT_SECRET={{ vault_dex_grafana_client_secret }}
+    volumes:
+      - {{ cert_dir }}:/etc/certs:ro
+      - /data/configs/grafana/provisioning:/etc/grafana/provisioning:ro
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.grafana.rule=Host(`mon.{{ domain_name }}`)"
+        - "traefik.http.routers.grafana.entrypoints=websecure"
+        - "traefik.http.routers.grafana.tls=true"
+        - "traefik.http.services.grafana.loadbalancer.server.port=3000"

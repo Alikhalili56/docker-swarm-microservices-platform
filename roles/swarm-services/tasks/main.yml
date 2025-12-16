@@ -104,6 +104,29 @@
     owner: "65534"
     group: "65534"
 
+- name: Create grafana provisioning directories
+  ansible.builtin.file:
+    path: "/data/configs/grafana/provisioning/{{ item }}"
+    state: directory
+  loop:
+    - datasources
+    - dashboards
+
+- name: Copy grafana datasources
+  ansible.builtin.template:
+    src: grafana/datasources.yml
+    dest: /data/configs/grafana/provisioning/datasources/datasources.yml
+
+- name: Copy grafana dashboard provisioning
+  ansible.builtin.copy:
+    src: grafana/dashboards.yml
+    dest: /data/configs/grafana/provisioning/dashboards/dashboards.yml
+
+- name: Copy grafana dashboards
+  ansible.builtin.copy:
+    src: "grafana/dashboards/"
+    dest: /data/configs/grafana/provisioning/dashboards/
+
 - name: Deploy stack from a compose file
   community.docker.docker_stack:
     state: present
