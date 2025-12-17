@@ -104,6 +104,13 @@
     owner: "65534"
     group: "65534"
 
+- name: Set loki data directory ownership
+  ansible.builtin.file:
+    path: /data/loki
+    state: directory
+    owner: "10001"
+    group: "10001"
+
 - name: Create grafana provisioning directories
   ansible.builtin.file:
     path: "/data/configs/grafana/provisioning/{{ item }}"

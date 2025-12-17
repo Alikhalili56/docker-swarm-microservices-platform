@@ -1,0 +1,24 @@
+{
+  "title": "Traefik Metrics & Logs",
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Requests/sec",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(traefik_entrypoint_requests_total[1m])) by (entrypoint)", "legendFormat": "{{entrypoint}}"}]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Response Time p95",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(traefik_entrypoint_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95"}]
+    },
+    {
+      "id": 3, "type": "logs", "title": "Traefik Logs",
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 10},
+      "datasource": "Loki",
+      "targets": [{"expr": "{container_name=~\".*traefik.*\"}"}]
+    }
+  ],
+  "schemaVersion": 30
+}

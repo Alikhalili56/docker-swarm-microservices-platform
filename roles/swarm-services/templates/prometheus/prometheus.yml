@@ -3,47 +3,71 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'prometheus'
+  # Prometheus itself
+  - job_name: prometheus
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'traefik'
-    static_configs:
-      - targets: ['traefik:8082']
+  # Docker Swarm service discovery - auto-discovers services with labels
+  - job_name: docker_swarm_discovery
+    dockerswarm_sd_configs:
+      - host: unix:///var/run/docker.sock
+        role: tasks
+    relabel_configs:
+      # only keep running containers
+      - source_labels: ['__meta_dockerswarm_task_desired_state']
+        regex: running
+        action: keep
+      # only keep containers with prometheus.io/scrape-me=yes-please label
+      - source_labels: ['__meta_dockerswarm_service_label_prometheus_io_scrape_me']
+        regex: yes-please
+        action: keep
+      # replace port from prometheus.io/metrics-port label
+      - source_labels: ['__address__', '__meta_dockerswarm_service_label_prometheus_io_metrics_port']
+        separator: ';'
+        regex: '(.+)[:][0-9]+;(.+)$'
+        replacement: '$1:$2'
+        target_label: '__address__'
+        action: replace
+      # grab service name as label
+      - source_labels: ['__meta_dockerswarm_service_name']
+        target_label: service_name
+        action: replace
+      # grab node hostname as label
+      - source_labels: ['__meta_dockerswarm_node_hostname']
+        target_label: node
+        action: replace
+      # copy container labels from docker
+      - regex: __meta_dockerswarm_container_label_(.+)
+        replacement: swarm_container_label_$1
+        action: labelmap
+      # copy service labels from docker
+      - regex: __meta_dockerswarm_service_label_(.+)
+        replacement: swarm_service_label_$1
+        action: labelmap
 
-  - job_name: 'dex'
-    static_configs:
-      - targets: ['dex:5558']
+  # Node Exporter - use swarm discovery to get hostname
+  - job_name: node-exporter
+    dockerswarm_sd_configs:
+      - host: unix:///var/run/docker.sock
+        role: tasks
+    relabel_configs:
+      - source_labels: ['__meta_dockerswarm_task_desired_state']
+        regex: running
+        action: keep
+      - source_labels: ['__meta_dockerswarm_service_name']
+        regex: vcc_node-exporter
+        action: keep
+      - source_labels: ['__address__']
+        regex: '(.+):[0-9]+'
+        replacement: '$1:9100'
+        target_label: '__address__'
+      - source_labels: ['__meta_dockerswarm_node_hostname']
+        target_label: instance
+        action: replace
 
-  - job_name: 'forgejo'
-    static_configs:
-      - targets: ['forgejo:3200']
-    metrics_path: /metrics
-
-  - job_name: 'grafana'
-    static_configs:
-      - targets: ['grafana:3000']
-    metrics_path: /metrics
-
-  - job_name: 'loki'
-    static_configs:
-      - targets: ['loki:3100']
-
-  - job_name: 'promtail'
-    dns_sd_configs:
-      - names: ['tasks.promtail']
-        type: A
-        port: 9080
-
-  # Node Exporter - global mode, use DNS to discover all instances
-  - job_name: 'node-exporter'
-    dns_sd_configs:
-      - names: ['tasks.node-exporter']
-        type: A
-        port: 9100
-
-  # Registry metrics - runs on all nodes via host network
-  - job_name: 'registry'
+  # Registry - runs on host network on all nodes
+  - job_name: registry
     dockerswarm_sd_configs:
       - host: unix:///var/run/docker.sock
         role: nodes

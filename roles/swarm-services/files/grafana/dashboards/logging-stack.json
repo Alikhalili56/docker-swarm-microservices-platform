@@ -1,0 +1,24 @@
+{
+  "title": "Logging Stack",
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Loki Up",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{service_name=\"vcc_loki\"})"}]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Promtail Instances",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{service_name=\"vcc_promtail\"} == 1)"}]
+    },
+    {
+      "id": 3, "type": "logs", "title": "All Container Logs",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 12},
+      "datasource": "Loki",
+      "targets": [{"expr": "{container_name=~\".+\"}"}]
+    }
+  ],
+  "schemaVersion": 30
+}

@@ -32,6 +32,8 @@ export GF_AUTH_GENERIC_OAUTH_AUTH_URL="https://auth.vcc.internal/auth"
 export GF_AUTH_GENERIC_OAUTH_TOKEN_URL="http://dex:5556/token"
 export GF_AUTH_GENERIC_OAUTH_API_URL="http://dex:5556/userinfo"
 export GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true
+export GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH="contains(groups[*], 'admin') && 'Admin' || 'Editor'"
+export GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN=true
 export GF_AUTH_DISABLE_LOGIN_FORM=true
 
 echo "[grafana] starting grafana..."

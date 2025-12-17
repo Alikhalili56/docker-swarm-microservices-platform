@@ -1,0 +1,66 @@
+{
+  "title": "Monitoring Stack",
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Total Targets Up",
+      "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up == 1)"}]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Prometheus",
+      "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{job=\"prometheus\"})"}]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Grafana",
+      "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{service_name=\"vcc_grafana\"})"}]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Traefik",
+      "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{service_name=\"vcc_traefik\"})"}]
+    },
+    {
+      "id": 5, "type": "stat", "title": "Dex",
+      "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{service_name=\"vcc_dex\"})"}]
+    },
+    {
+      "id": 6, "type": "stat", "title": "Forgejo",
+      "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{service_name=\"vcc_forgejo\"})"}]
+    },
+    {
+      "id": 7, "type": "stat", "title": "Loki",
+      "gridPos": {"x": 0, "y": 4, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "max(up{service_name=\"vcc_loki\"})"}]
+    },
+    {
+      "id": 8, "type": "stat", "title": "Promtail",
+      "gridPos": {"x": 4, "y": 4, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{service_name=\"vcc_promtail\"} == 1)"}]
+    },
+    {
+      "id": 9, "type": "stat", "title": "Node Exporter",
+      "gridPos": {"x": 8, "y": 4, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"node-exporter\"} == 1)"}]
+    },
+    {
+      "id": 10, "type": "stat", "title": "Registry",
+      "gridPos": {"x": 12, "y": 4, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"registry\"} == 1)"}]
+    }
+  ],
+  "schemaVersion": 30
+}

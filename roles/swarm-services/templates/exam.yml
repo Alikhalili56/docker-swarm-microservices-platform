@@ -30,6 +30,8 @@ services:
         - "traefik.http.routers.dex.entrypoints=websecure"
         - "traefik.http.routers.dex.tls=true"
         - "traefik.http.services.dex.loadbalancer.server.port=5556"
+        - "prometheus.io/scrape-me=yes-please"
+        - "prometheus.io/metrics-port=5558"
 
   traefik:
     # new Docker requires 1.44+, This prevented Traefik from discovering services via swarm provider (Dex unreachable)
@@ -97,6 +99,8 @@ services:
         - "traefik.http.routers.forgejo.entrypoints=websecure"
         - "traefik.http.routers.forgejo.tls=true"
         - "traefik.http.services.forgejo.loadbalancer.server.port=3200"
+        - "prometheus.io/scrape-me=yes-please"
+        - "prometheus.io/metrics-port=3200"
 
   node-exporter:
     image: quay.io/prometheus/node-exporter:v1.8.2
@@ -114,9 +118,12 @@ services:
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     deploy:
       mode: global
+      endpoint_mode: dnsrr
 
   prometheus:
     image: quay.io/prometheus/prometheus:v3.0.1
+    environment:
+     - TZ=Europe/Rome
     user: root
     networks:
       - internal_net
@@ -143,6 +150,7 @@ services:
     networks:
       - internal_net
     environment:
+      - TZ=Europe/Rome
       - GF_SERVER_ROOT_URL=https://mon.{{ domain_name }}
       - GF_DATABASE_TYPE=postgres
       - GF_DATABASE_HOST=postgres:5432
@@ -163,9 +171,13 @@ services:
         - "traefik.http.routers.grafana.entrypoints=websecure"
         - "traefik.http.routers.grafana.tls=true"
         - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+        - "prometheus.io/scrape-me=yes-please"
+        - "prometheus.io/metrics-port=3000"
 
   loki:
     image: docker.io/grafana/loki:3.3.1
+    environment:
+      - TZ=Europe/Rome
     command:
       - -config.file=/etc/loki/loki.yml
     networks:
@@ -173,6 +185,10 @@ services:
     volumes:
       - /data/configs/loki/loki.yml:/etc/loki/loki.yml:ro
       - /data/loki:/loki
+    deploy:
+      labels:
+        - "prometheus.io/scrape-me=yes-please"
+        - "prometheus.io/metrics-port=3100"
 
   promtail:
     image: docker.io/grafana/promtail:3.2.2
@@ -187,3 +203,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     deploy:
       mode: global
+      labels:
+        - "prometheus.io/scrape-me=yes-please"
+        - "prometheus.io/metrics-port=9080"
