@@ -1,4 +1,5 @@
-KEY_FILE_PATH = "C:\\users\\enriquez\\.ssh\\id_rsa.pub"
+# Optional: Set path to your SSH public key for passwordless access
+# KEY_FILE_PATH = "~/.ssh/id_rsa.pub"
 MYNET="192.168.88"
 NUM_TARGET=2
 
